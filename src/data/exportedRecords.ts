@@ -23,6 +23,8 @@ export interface ExportedRecord {
   emailValid: boolean;
   emailOpened: boolean;
   permissionFormClicked: boolean;
+  lat: number;
+  lng: number;
 }
 
 export const exportedRecords: ExportedRecord[] = [
@@ -51,6 +53,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: false,
+    lat: 38.948,
+    lng: -84.675,
   },
   {
     id: "EX002",
@@ -77,6 +81,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.003,
+    lng: -84.627,
   },
   {
     id: "EX003",
@@ -103,6 +109,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.020,
+    lng: -84.596,
   },
   {
     id: "EX004",
@@ -129,6 +137,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: true,
+    lat: 39.032,
+    lng: -84.724,
   },
   {
     id: "EX005",
@@ -155,6 +165,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.069,
+    lng: -84.696,
   },
   {
     id: "EX006",
@@ -181,6 +193,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: false,
+    lat: 39.055,
+    lng: -84.559,
   },
   {
     id: "EX007",
@@ -207,6 +221,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: true,
+    lat: 39.087,
+    lng: -84.514,
   },
   {
     id: "EX008",
@@ -233,6 +249,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: false,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 38.946,
+    lng: -84.540,
   },
   {
     id: "EX009",
@@ -259,6 +277,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 38.997,
+    lng: -84.635,
   },
   {
     id: "EX010",
@@ -285,6 +305,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: false,
+    lat: 39.080,
+    lng: -84.506,
   },
   {
     id: "EX011",
@@ -311,6 +333,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: false,
+    lat: 39.014,
+    lng: -84.605,
   },
   {
     id: "EX012",
@@ -337,6 +361,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 38.941,
+    lng: -84.685,
   },
   {
     id: "EX013",
@@ -363,6 +389,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: false,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.025,
+    lng: -84.715,
   },
   {
     id: "EX014",
@@ -389,6 +417,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.062,
+    lng: -84.551,
   },
   {
     id: "EX015",
@@ -415,6 +445,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: false,
+    lat: 39.063,
+    lng: -84.706,
   },
   {
     id: "EX016",
@@ -441,6 +473,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 38.940,
+    lng: -84.548,
   },
   {
     id: "EX017",
@@ -467,6 +501,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.005,
+    lng: -84.623,
   },
   {
     id: "EX018",
@@ -493,6 +529,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 38.952,
+    lng: -84.673,
   },
   {
     id: "EX019",
@@ -519,6 +557,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.079,
+    lng: -84.516,
   },
   {
     id: "EX020",
@@ -545,6 +585,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: false,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.022,
+    lng: -84.593,
   },
   {
     id: "EX021",
@@ -571,6 +613,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: false,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.034,
+    lng: -84.728,
   },
   {
     id: "EX022",
@@ -597,6 +641,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 38.949,
+    lng: -84.537,
   },
   {
     id: "EX023",
@@ -623,6 +669,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 38.938,
+    lng: -84.688,
   },
   {
     id: "EX024",
@@ -649,6 +697,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: false,
+    lat: 39.053,
+    lng: -84.548,
   },
   {
     id: "EX025",
@@ -675,6 +725,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: false,
+    lat: 38.993,
+    lng: -84.638,
   },
   {
     id: "EX026",
@@ -701,6 +753,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: false,
+    lat: 39.008,
+    lng: -84.619,
   },
   {
     id: "EX027",
@@ -727,6 +781,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: true,
     permissionFormClicked: true,
+    lat: 39.011,
+    lng: -84.608,
   },
   {
     id: "EX028",
@@ -753,6 +809,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: false,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.072,
+    lng: -84.693,
   },
   {
     id: "EX029",
@@ -779,6 +837,8 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 39.090,
+    lng: -84.503,
   },
   {
     id: "EX030",
@@ -805,5 +865,7 @@ export const exportedRecords: ExportedRecord[] = [
     emailValid: true,
     emailOpened: false,
     permissionFormClicked: false,
+    lat: 38.937,
+    lng: -84.551,
   },
 ];

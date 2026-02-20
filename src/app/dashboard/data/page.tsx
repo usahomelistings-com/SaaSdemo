@@ -7,7 +7,7 @@ import Link from "next/link";
 import KPICard from "@/components/KPICard";
 import PropertyTable from "@/components/PropertyTable";
 import PropertyCard from "@/components/PropertyCard";
-import { properties } from "@/data/properties";
+import { properties, type Property } from "@/data/properties";
 import { exportedRecords } from "@/data/exportedRecords";
 import { getLeadScoreBg, getLeadScoreLabel, getPropertyTypeLabel } from "@/lib/utils";
 import { useBusinessType } from "@/context/BusinessTypeContext";
@@ -49,6 +49,7 @@ export default function DataPage() {
   const config = businessTypeConfigs[businessType];
   const [activeTab, setActiveTab] = useState<"listings" | "exported">("listings");
   const [viewMode, setViewMode] = useState<"table" | "map">("table");
+  const [exportedViewMode, setExportedViewMode] = useState<"table" | "map">("table");
   const [selectedMapProperty, setSelectedMapProperty] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedExportedIds, setSelectedExportedIds] = useState<Set<string>>(new Set());
@@ -77,6 +78,33 @@ export default function DataPage() {
       return true;
     });
   }, [filters]);
+
+  // Convert exported records to Property-compatible for map/card components
+  const exportedAsProperties = useMemo<Property[]>(() =>
+    exportedRecords.map((r) => ({
+      id: r.id,
+      address: r.address,
+      city: r.city,
+      state: r.state,
+      zip: r.zip,
+      moveInDate: r.moveInDate,
+      homeValue: r.homeValue,
+      hvacAge: r.hvacAge,
+      waterHeaterAge: r.waterHeaterAge,
+      roofAge: r.roofAge,
+      hasWarranty: r.hasWarranty,
+      signals: r.signals,
+      lat: r.lat,
+      lng: r.lng,
+      leadScore: r.leadScore,
+      propertyType: r.propertyType,
+      phoneConsent: r.phoneConsent,
+      smsConsent: r.smsConsent,
+      emailValid: r.emailValid,
+      emailOpened: r.emailOpened,
+      permissionFormClicked: r.permissionFormClicked,
+    })),
+  []);
 
   const avgLeadScore = filteredProperties.length > 0
     ? (filteredProperties.reduce((sum, p) => sum + p.leadScore, 0) / filteredProperties.length).toFixed(1)
@@ -181,28 +209,28 @@ export default function DataPage() {
         </button>
       </div>
 
-      {/* View Toggle (only for listings tab) */}
-      {activeTab === "listings" && (
+      {/* View Toggle */}
+      {(activeTab === "listings" || activeTab === "exported") && (
         <div className="flex items-center justify-between mb-6">
           <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
             <button
-              onClick={() => setViewMode("table")}
+              onClick={() => activeTab === "listings" ? setViewMode("table") : setExportedViewMode("table")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                viewMode === "table" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                (activeTab === "listings" ? viewMode : exportedViewMode) === "table" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}
             >
               <TableProperties className="h-4 w-4" /> Table View
             </button>
             <button
-              onClick={() => setViewMode("map")}
+              onClick={() => activeTab === "listings" ? setViewMode("map") : setExportedViewMode("map")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                viewMode === "map" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                (activeTab === "listings" ? viewMode : exportedViewMode) === "map" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
               }`}
             >
               <Map className="h-4 w-4" /> Map View
             </button>
           </div>
-          {viewMode === "map" && (
+          {((activeTab === "listings" && viewMode === "map") || (activeTab === "exported" && exportedViewMode === "map")) && (
             <Link
               href="/dashboard/audiences"
               className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-blue-800 text-white text-sm font-medium hover:bg-blue-900 transition-colors"
@@ -494,124 +522,187 @@ export default function DataPage() {
             </p>
           </div>
 
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm mb-4 p-4 flex items-center justify-between">
-            <div className="text-sm text-slate-600">
-              {selectedExportedIds.size > 0 ? (
-                <span className="font-medium text-blue-800">{selectedExportedIds.size} records selected</span>
-              ) : (
-                <span>Showing {exportedRecords.length} exported records</span>
-              )}
-            </div>
-            <div className="flex gap-2">
-              {selectedExportedIds.size > 0 && (
-                <>
-                  <Link
-                    href="/dashboard/campaigns"
-                    className="px-4 py-2 rounded-md bg-blue-800 text-white text-sm font-medium hover:bg-blue-900 transition-colors"
-                  >
-                    Build Campaign &rarr;
-                  </Link>
-                  <Link
-                    href="/dashboard/campaigns?tab=automation"
-                    className="px-4 py-2 rounded-md border border-purple-600 text-purple-700 text-sm font-medium hover:bg-purple-50 transition-colors"
-                  >
-                    Create Automation &rarr;
-                  </Link>
-                </>
-              )}
-              <button
-                onClick={() => setShowUpload(true)}
-                className="px-4 py-2 rounded-md border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-1.5"
-              >
-                <Upload className="h-4 w-4" /> Upload Your Data
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-4 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedExportedIds.size === exportedRecords.length && exportedRecords.length > 0}
-                      onChange={toggleAllExported}
-                      className="rounded border-slate-300"
-                    />
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Phone</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Address</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase">Lead Score</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">City/State</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Campaign</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Channel</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Exported</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">{isMover ? "Move Status" : "HVAC Age"}</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Contact</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Signals</th>
-                </tr>
-              </thead>
-              <tbody>
+          {/* Exported Map View */}
+          {exportedViewMode === "map" && (
+            <div className="flex gap-4" style={{ height: "calc(100vh - 380px)", minHeight: "500px" }}>
+              <div className="flex-[3] min-w-0 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                <PropertyMap
+                  properties={exportedAsProperties}
+                  selectedPropertyId={selectedMapProperty}
+                  onSelectProperty={handleMapSelect}
+                  isMover={isMover}
+                />
+              </div>
+              <div className="flex-[2] overflow-y-auto space-y-3 pr-1">
+                <p className="text-sm text-slate-500 mb-2">{exportedRecords.length} exported records</p>
                 {exportedRecords.map((r) => (
-                  <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedExportedIds.has(r.id)}
-                        onChange={() => toggleExportedId(r.id)}
-                        className="rounded border-slate-300"
-                      />
-                    </td>
-                    <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">{r.name}</td>
-                    <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{r.phone}</td>
-                    <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{r.address}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${getLeadScoreBg(r.leadScore)}`}>
-                        {r.leadScore} {getLeadScoreLabel(r.leadScore)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{r.city}, {r.state}</td>
-                    <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{r.campaign}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="inline-block bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded">{r.channel}</span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-500 whitespace-nowrap">{r.exportedDate}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {isMover ? (
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${
-                          r.propertyType === "new_listing" ? "bg-blue-50 text-blue-700" :
-                          r.propertyType === "new_owner" ? "bg-purple-50 text-purple-700" :
-                          "bg-emerald-50 text-emerald-700"
-                        }`}>
-                          {getPropertyTypeLabel(r.propertyType)}
-                        </span>
-                      ) : (
-                        <span className={`text-xs font-medium ${r.hvacAge >= 15 ? "text-red-600" : r.hvacAge >= 10 ? "text-amber-600" : "text-emerald-600"}`}>
-                          {r.hvacAge} yrs
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <span className={`w-2 h-2 rounded-full ${r.phoneConsent ? "bg-emerald-500" : "bg-slate-300"}`} title={r.phoneConsent ? "Phone OK" : "No phone"} />
-                        <span className={`w-2 h-2 rounded-full ${r.smsConsent ? "bg-emerald-500" : "bg-slate-300"}`} title={r.smsConsent ? "SMS OK" : "No SMS"} />
-                        <span className={`w-2 h-2 rounded-full ${r.emailValid ? "bg-emerald-500" : "bg-slate-300"}`} title={r.emailValid ? "Email OK" : "No email"} />
+                  <div key={r.id} ref={(el) => { cardRefs.current[r.id] = el; }}>
+                    <div
+                      onClick={() => setSelectedMapProperty(r.id)}
+                      className={`bg-white rounded-lg border-2 overflow-hidden cursor-pointer transition-all hover:shadow-md ${
+                        selectedMapProperty === r.id ? "border-blue-800 shadow-md" : "border-slate-200"
+                      }`}
+                    >
+                      <div className="p-3">
+                        <div className="flex items-start justify-between mb-1.5">
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900">{r.name}</p>
+                            <p className="text-xs text-slate-500">{r.address}</p>
+                            <p className="text-xs text-slate-400">{r.city}, {r.state} {r.zip}</p>
+                          </div>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getLeadScoreBg(r.leadScore)}`}>
+                            {r.leadScore} {getLeadScoreLabel(r.leadScore)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-slate-500 mb-2">
+                          <span className="font-medium text-blue-800">${r.homeValue.toLocaleString()}</span>
+                          <span className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">{r.channel}</span>
+                          <span>{r.campaign}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {r.signals.slice(0, 3).map((s) => (
+                            <span key={s} className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">{s}</span>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${r.phoneConsent ? "bg-emerald-500" : "bg-slate-300"}`} />
+                          <span className={`w-2 h-2 rounded-full ${r.smsConsent ? "bg-emerald-500" : "bg-slate-300"}`} />
+                          <span className={`w-2 h-2 rounded-full ${r.emailValid ? "bg-emerald-500" : "bg-slate-300"}`} />
+                          <span className="text-xs text-slate-400 ml-1">
+                            {[r.phoneConsent && "Phone", r.smsConsent && "SMS", r.emailValid && "Email"].filter(Boolean).join(" · ") || "No permissions"}
+                          </span>
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {r.signals.map((s) => (
-                          <span key={s} className="inline-block bg-blue-50 text-blue-700 text-xs px-1.5 py-0.5 rounded">{s}</span>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
+          )}
+
+          {/* Exported Table View */}
+          {exportedViewMode === "table" && (
+            <>
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm mb-4 p-4 flex items-center justify-between">
+                <div className="text-sm text-slate-600">
+                  {selectedExportedIds.size > 0 ? (
+                    <span className="font-medium text-blue-800">{selectedExportedIds.size} records selected</span>
+                  ) : (
+                    <span>Showing {exportedRecords.length} exported records</span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {selectedExportedIds.size > 0 && (
+                    <>
+                      <Link
+                        href="/dashboard/campaigns"
+                        className="px-4 py-2 rounded-md bg-blue-800 text-white text-sm font-medium hover:bg-blue-900 transition-colors"
+                      >
+                        Build Campaign &rarr;
+                      </Link>
+                      <Link
+                        href="/dashboard/campaigns?tab=automation"
+                        className="px-4 py-2 rounded-md border border-purple-600 text-purple-700 text-sm font-medium hover:bg-purple-50 transition-colors"
+                      >
+                        Create Automation &rarr;
+                      </Link>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setShowUpload(true)}
+                    className="px-4 py-2 rounded-md border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+                  >
+                    <Upload className="h-4 w-4" /> Upload Your Data
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50">
+                      <th className="px-4 py-3 text-left">
+                        <input
+                          type="checkbox"
+                          checked={selectedExportedIds.size === exportedRecords.length && exportedRecords.length > 0}
+                          onChange={toggleAllExported}
+                          className="rounded border-slate-300"
+                        />
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Phone</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Address</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase">Lead Score</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">City/State</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Campaign</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Channel</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Exported</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">{isMover ? "Move Status" : "HVAC Age"}</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Contact</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Signals</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {exportedRecords.map((r) => (
+                      <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="px-4 py-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedExportedIds.has(r.id)}
+                            onChange={() => toggleExportedId(r.id)}
+                            className="rounded border-slate-300"
+                          />
+                        </td>
+                        <td className="px-4 py-3 font-medium text-slate-900 whitespace-nowrap">{r.name}</td>
+                        <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{r.phone}</td>
+                        <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{r.address}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${getLeadScoreBg(r.leadScore)}`}>
+                            {r.leadScore} {getLeadScoreLabel(r.leadScore)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{r.city}, {r.state}</td>
+                        <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{r.campaign}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="inline-block bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded">{r.channel}</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 whitespace-nowrap">{r.exportedDate}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {isMover ? (
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              r.propertyType === "new_listing" ? "bg-blue-50 text-blue-700" :
+                              r.propertyType === "new_owner" ? "bg-purple-50 text-purple-700" :
+                              "bg-emerald-50 text-emerald-700"
+                            }`}>
+                              {getPropertyTypeLabel(r.propertyType)}
+                            </span>
+                          ) : (
+                            <span className={`text-xs font-medium ${r.hvacAge >= 15 ? "text-red-600" : r.hvacAge >= 10 ? "text-amber-600" : "text-emerald-600"}`}>
+                              {r.hvacAge} yrs
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            <span className={`w-2 h-2 rounded-full ${r.phoneConsent ? "bg-emerald-500" : "bg-slate-300"}`} title={r.phoneConsent ? "Phone OK" : "No phone"} />
+                            <span className={`w-2 h-2 rounded-full ${r.smsConsent ? "bg-emerald-500" : "bg-slate-300"}`} title={r.smsConsent ? "SMS OK" : "No SMS"} />
+                            <span className={`w-2 h-2 rounded-full ${r.emailValid ? "bg-emerald-500" : "bg-slate-300"}`} title={r.emailValid ? "Email OK" : "No email"} />
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {r.signals.map((s) => (
+                              <span key={s} className="inline-block bg-blue-50 text-blue-700 text-xs px-1.5 py-0.5 rounded">{s}</span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       )}
 
