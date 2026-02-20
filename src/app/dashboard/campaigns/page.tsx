@@ -11,6 +11,7 @@ import { vendors } from "@/data/vendors";
 import { automationTemplates } from "@/data/automationTemplates";
 import { formatNumber, getLeadScoreLabel } from "@/lib/utils";
 import { properties } from "@/data/properties";
+import { audiences } from "@/data/audiences";
 import { useBusinessType } from "@/context/BusinessTypeContext";
 import { businessTypeConfigs } from "@/data/businessTypeConfig";
 import { moverAutomationTemplates, moverFieldOptions, moverOperatorsByField } from "@/data/moverData";
@@ -53,7 +54,10 @@ export default function CampaignBuilderPage() {
   const [autoSchedule, setAutoSchedule] = useState<Schedule>(defaultSchedule);
   const [autoName, setAutoName] = useState("");
 
-  const audienceCount = 342;
+  const [selectedAudience, setSelectedAudience] = useState<string | null>(null);
+  const myAudiences = audiences.filter((a) => a.businessType === businessType);
+  const activeAudience = myAudiences.find((a) => a.id === selectedAudience);
+  const audienceCount = activeAudience?.recordCount ?? 0;
   const creditsRequired = audienceCount;
   const creditBalance = 2340;
   const needMore = creditsRequired > creditBalance;
@@ -117,53 +121,63 @@ export default function CampaignBuilderPage() {
       {/* ========== MANUAL MODE ========== */}
       {mode === "manual" && (
         <>
-          {/* Step 0: Audience */}
+          {/* Step 0: Select Audience */}
           {step === 0 && (
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
-                <h2 className="text-lg font-semibold text-slate-900 mb-4">Audience Selection</h2>
-                <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                  <p className="text-2xl font-bold text-blue-800">{audienceCount} properties selected</p>
-                  <p className="text-sm text-blue-700 mt-1">{config.audienceDesc}</p>
-                </div>
+            <div className="max-w-3xl mx-auto">
+              <h2 className="text-lg font-semibold text-slate-900 mb-2">Select an Audience</h2>
+              <p className="text-sm text-slate-500 mb-4">Choose a saved audience to target with this campaign</p>
 
-                {/* Quick Filter Chips */}
-                <div className="mb-4">
-                  <p className="text-xs text-slate-500 font-medium mb-2">Quick Filters</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-pointer hover:bg-emerald-100">
-                      Phone Consent Only ({properties.filter((p) => p.phoneConsent).length})
-                    </span>
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-pointer hover:bg-emerald-100">
-                      SMS Consent Only ({properties.filter((p) => p.smsConsent).length})
-                    </span>
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 cursor-pointer hover:bg-red-100">
-                      Lead Score 8+ ({properties.filter((p) => p.leadScore >= 8).length})
-                    </span>
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 cursor-pointer hover:bg-purple-100">
-                      New Owners Only ({properties.filter((p) => p.propertyType === "new_owner").length})
-                    </span>
-                  </div>
+              {myAudiences.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                  {myAudiences.map((a) => (
+                    <button
+                      key={a.id}
+                      onClick={() => setSelectedAudience(a.id)}
+                      className={`text-left rounded-lg border-2 p-4 transition-all hover:shadow-md ${
+                        selectedAudience === a.id
+                          ? "border-blue-800 bg-blue-50"
+                          : "border-slate-200 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-slate-900 text-sm">{a.name}</h3>
+                        <span className="text-lg font-bold text-blue-800">{a.recordCount.toLocaleString()}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {a.rules.map((r, i) => (
+                          <span key={i} className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">
+                            {r.field} {r.operator} {r.value}
+                          </span>
+                        ))}
+                      </div>
+                      {selectedAudience === a.id && (
+                        <p className="text-xs text-blue-700 font-medium mt-2">
+                          {a.recordCount} records &middot; {a.recordCount} credits required
+                        </p>
+                      )}
+                    </button>
+                  ))}
                 </div>
+              ) : (
+                <div className="bg-white rounded-lg border border-slate-200 p-8 text-center mb-6">
+                  <p className="text-slate-500 mb-2">No audiences saved yet.</p>
+                </div>
+              )}
 
-                {/* Lead Score Distribution */}
-                <div className="bg-slate-50 rounded-lg p-3 mb-4">
-                  <p className="text-xs text-slate-500 font-medium mb-1.5">Lead Score Distribution</p>
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" />{properties.filter((p) => p.leadScore >= 8).length} Hot</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" />{properties.filter((p) => p.leadScore >= 5 && p.leadScore < 8).length} Warm</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-300" />{properties.filter((p) => p.leadScore < 5).length} Cold</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <Link href="/dashboard/data" className="px-4 py-2 rounded-md border border-slate-200 text-sm text-slate-600 hover:bg-slate-50">
-                    Edit Selection
-                  </Link>
-                  <button onClick={() => setStep(1)} className="px-6 py-2 rounded-md bg-blue-800 text-white text-sm font-medium hover:bg-blue-900">
-                    Continue &rarr;
-                  </button>
-                </div>
+              <div className="flex items-center justify-between">
+                <Link
+                  href="/dashboard/audiences"
+                  className="text-sm text-blue-800 font-medium hover:underline"
+                >
+                  Create New Audience &rarr;
+                </Link>
+                <button
+                  onClick={() => setStep(1)}
+                  disabled={!selectedAudience}
+                  className="px-6 py-2 rounded-md bg-blue-800 text-white text-sm font-medium hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Continue &rarr;
+                </button>
               </div>
             </div>
           )}
@@ -376,6 +390,29 @@ export default function CampaignBuilderPage() {
               </button>
               <h2 className="text-lg font-semibold text-slate-900 mb-2">Define Trigger Rules</h2>
               <p className="text-sm text-slate-500 mb-4">Properties matching these rules will be automatically exported</p>
+              {/* Start from Saved Audience */}
+              {myAudiences.length > 0 && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 flex items-center gap-3">
+                  <span className="text-sm text-purple-800 font-medium whitespace-nowrap">Start from saved audience:</span>
+                  <select
+                    onChange={(e) => {
+                      const aud = myAudiences.find((a) => a.id === e.target.value);
+                      if (aud) {
+                        setAutoRules(aud.rules.map((r) => ({ field: r.field, operator: r.operator, value: r.value })));
+                        if (!autoName) setAutoName(aud.name + " — Automation");
+                      }
+                    }}
+                    defaultValue=""
+                    className="flex-1 border border-purple-200 rounded-md px-2 py-1.5 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  >
+                    <option value="" disabled>Choose an audience to pre-fill rules...</option>
+                    {myAudiences.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name} ({a.recordCount} records)</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 mb-4">
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Automation Name</label>

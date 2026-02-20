@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Database, AlertTriangle, Home, Filter, Upload, X, Info, RotateCcw, TrendingUp } from "lucide-react";
+import { useState, useMemo, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
+import { Database, AlertTriangle, Home, Filter, Upload, X, Info, RotateCcw, TrendingUp, Map, TableProperties, Users } from "lucide-react";
 import Link from "next/link";
 import KPICard from "@/components/KPICard";
 import PropertyTable from "@/components/PropertyTable";
+import PropertyCard from "@/components/PropertyCard";
 import { properties } from "@/data/properties";
 import { exportedRecords } from "@/data/exportedRecords";
 import { getLeadScoreBg, getLeadScoreLabel, getPropertyTypeLabel } from "@/lib/utils";
 import { useBusinessType } from "@/context/BusinessTypeContext";
 import { businessTypeConfigs } from "@/data/businessTypeConfig";
+import "leaflet/dist/leaflet.css";
+
+const PropertyMap = dynamic(() => import("@/components/PropertyMap"), { ssr: false });
 
 interface Filters {
   propertyTypes: Set<string>;
@@ -43,10 +48,18 @@ export default function DataPage() {
   const { businessType, isMover } = useBusinessType();
   const config = businessTypeConfigs[businessType];
   const [activeTab, setActiveTab] = useState<"listings" | "exported">("listings");
+  const [viewMode, setViewMode] = useState<"table" | "map">("table");
+  const [selectedMapProperty, setSelectedMapProperty] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedExportedIds, setSelectedExportedIds] = useState<Set<string>>(new Set());
   const [showUpload, setShowUpload] = useState(false);
   const [filters, setFilters] = useState<Filters>({ ...defaultFilters, propertyTypes: new Set(defaultFilters.propertyTypes) });
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const handleMapSelect = useCallback((id: string) => {
+    setSelectedMapProperty(id);
+    cardRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
 
   const filteredProperties = useMemo(() => {
     return properties.filter((p) => {
@@ -168,8 +181,69 @@ export default function DataPage() {
         </button>
       </div>
 
-      {/* Tab 1: New Listings & Moves */}
+      {/* View Toggle (only for listings tab) */}
       {activeTab === "listings" && (
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                viewMode === "table" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <TableProperties className="h-4 w-4" /> Table View
+            </button>
+            <button
+              onClick={() => setViewMode("map")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                viewMode === "map" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <Map className="h-4 w-4" /> Map View
+            </button>
+          </div>
+          {viewMode === "map" && (
+            <Link
+              href="/dashboard/audiences"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-md bg-blue-800 text-white text-sm font-medium hover:bg-blue-900 transition-colors"
+            >
+              <Users className="h-4 w-4" /> Save as Audience
+            </Link>
+          )}
+        </div>
+      )}
+
+      {/* Map View */}
+      {activeTab === "listings" && viewMode === "map" && (
+        <div className="flex gap-4" style={{ height: "calc(100vh - 340px)", minHeight: "500px" }}>
+          {/* Map Panel */}
+          <div className="flex-[3] min-w-0 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+            <PropertyMap
+              properties={properties}
+              selectedPropertyId={selectedMapProperty}
+              onSelectProperty={handleMapSelect}
+              isMover={isMover}
+            />
+          </div>
+          {/* Cards Panel */}
+          <div className="flex-[2] overflow-y-auto space-y-3 pr-1">
+            <p className="text-sm text-slate-500 mb-2">{properties.length} properties in your service area</p>
+            {properties.map((p) => (
+              <div key={p.id} ref={(el) => { cardRefs.current[p.id] = el; }}>
+                <PropertyCard
+                  property={p}
+                  isSelected={selectedMapProperty === p.id}
+                  onClick={() => setSelectedMapProperty(p.id)}
+                  isMover={isMover}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Table View: New Listings & Moves */}
+      {activeTab === "listings" && viewMode === "table" && (
         <div className="flex gap-6">
           {/* Filter Sidebar */}
           <div className="hidden lg:block w-64 flex-shrink-0">

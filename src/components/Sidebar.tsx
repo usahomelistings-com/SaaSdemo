@@ -10,6 +10,7 @@ import {
   Coins,
   BarChart3,
   RefreshCw,
+  Users,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -21,6 +22,7 @@ import { useBusinessType } from "@/context/BusinessTypeContext";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/data", label: "My Data", icon: Database },
+  { href: "/dashboard/audiences", label: "Audiences", icon: Users },
   { href: "/dashboard/campaigns", label: "Campaign Builder", icon: Megaphone },
   { href: "/dashboard/automations", label: "Automations", icon: RefreshCw },
   { href: "/dashboard/marketplace", label: "Vendor Marketplace", icon: Store },
